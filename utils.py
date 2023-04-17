@@ -171,7 +171,6 @@ def bucketize(dataframe, key):
         if not class_name in class_names:
             class_names[class_name] = len(class_names)
         class_name = class_names[class_name]
-        print(class_name)
     
     return dataframe
     
