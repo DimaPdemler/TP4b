@@ -157,3 +157,20 @@ def split_dataset(data, ratio_train = 0.75, shuffle = True, print_sizes = True):
         print("Measurement set : {:.2f} %".format(100*len(data_meas)/N))
 
     return data_train, data_val, data_test, data_meas
+
+def bucketize(dataframe, key):
+    """
+    Input : 
+        -dataframe : pandas dataframe or dictionary
+        -key : key of the dataframe representing the classes names, that will be turned into indices
+    Output : 
+        -dataframe with integers replacing the values of dataframe[key] (one index per different value)        
+    """
+    class_names = {}
+    for class_name in dataframe[key]:
+        if not class_name in class_names:
+            class_names[class_name] = len(class_names)
+        class_name = class_names[class_name]
+    
+    return dataframe
+    
