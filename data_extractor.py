@@ -84,13 +84,17 @@ class Data_extractor():
                     By default, data will contain the entries "signal_label" (1 for signal, 0 for background), "channel" and "event_type" (name of the 
                     file in which the events were taken)
         """
+        total_keys = self.output_vars.copy()
+        total_keys.extend(['signal_label', 'channel', 'event_type'])
+        if with_mass_hyp:
+            total_keys.append('mass_hyp')
         if data == None:
             value_list = []
             for i in range(len(self.output_vars)):
                 value_list.append(empty((0,)))
             data = dict(zip(self.output_vars, value_list))
-        elif list(data.keys()) != self.output_vars:
-            raise KeyError("The data keys don't match the names of the variable created by the data extractor")
+        elif set(list(data.keys())) != set(total_keys):
+            raise KeyError("The data keys don't match the names of the variable created by the data extractor : ", list(data.keys()), total_keys)
 
         if file_list == None:
             file_list = filter(listdir(path), '*.root')
