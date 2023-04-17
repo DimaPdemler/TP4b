@@ -37,8 +37,7 @@ class Dnn_tau(Model):
 	def call(self, x):
 		# Embedding of the channel column
 		ch_var_idx = self.input_vars.index('channel')
-		ch_emb = self.emb(x[:,ch_var_idx])
-		x = concat([x[:,:ch_var_idx], ch_emb, x[:,ch_var_idx+1:]], axis=1)
+		x = concat([x[:,:ch_var_idx], self.emb(x[:,ch_var_idx]), x[:,ch_var_idx+1:]], axis=1)
 
 		# Apply the layers to the data tensor
 		for layer in self.layers_:
