@@ -158,19 +158,32 @@ def split_dataset(data, ratio_train = 0.75, shuffle = True, print_sizes = True):
 
     return data_train, data_val, data_test, data_meas
 
-def bucketize(dataframe, key):
+def bucketize(dataframe, key, return_dict = True):
     """
     Input : 
         -dataframe : pandas dataframe or dictionary
         -key : key of the dataframe representing the classes names, that will be turned into indices
+        -return_dict : if True, the function returns the dictionary linking the former class names to the corresponding integer indices
     Output : 
-        -dataframe with integers replacing the values of dataframe[key] (one index per different value)        
+        -output : dataframe with integers replacing the values of dataframe[key] (one index per different value)  
+        -class_names : dictionary linking the former class names to the corresponding integer indices    
     """
+    dictionary = False
+    if type(dataframe) == dict:
+        dictionary = True
+        dataframe = DataFrame(dataframe)
+
     class_names = {}
-    for class_name in dataframe[key]:
+    for i,class_name in enumerate(dataframe[key]):
         if not class_name in class_names:
             class_names[class_name] = len(class_names)
-        class_name = class_names[class_name]
+    output = dataframe.copy()
+    output[key].replace(list(class_names.keys()), list(class_names.values()), inplace=True)
+
+    if dictionary:
+        output = output.to_dict()
     
-    return dataframe
+    if return_dict : 
+        return output, class_names
+    return output
     
