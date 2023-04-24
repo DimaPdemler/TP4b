@@ -1,6 +1,7 @@
 from numbers import Number
 import numpy as np
 from pandas import DataFrame
+from matplotlib import pyplot as plt
 
 def isolate_int(string, separators):
     if type(separators) != list:
@@ -186,4 +187,92 @@ def bucketize(dataframe, key, return_dict = True):
     if return_dict : 
         return output, class_names
     return output
+
+def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False):
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+    if type(dataframe) == dict:
+        data_pd = DataFrame(dataframe)
+    else:
+        data_pd = dataframe.copy()
+
+    sub_df = {}
+    if mode == 'n_tauh':
+        sub_df_keys =  ["signal", "bkg_0", "bkg_1", "bkg_2"]
+        event_type_labels = ["signal", r"$background\ 0\times\tau_h$", r"$background\ 1\times\tau_h$", r"$background\ 2\times\tau_h$"]
+        signal = data_pd.loc[data_pd['signal_label']==1]
+        background = data_pd.loc[data_pd['signal_label']==0]
+        background_0 = background.loc[background['n_tauh']==0]
+        background_1 = background.loc[background['n_tauh']==1]
+        background_2 = background.loc[background['n_tauh']==2]
+        sub_df[sub_df_keys[0]] = signal
+        sub_df[sub_df_keys[1]] = background_0
+        sub_df[sub_df_keys[2]] = background_1
+        sub_df[sub_df_keys[3]] = background_2
+    elif mode == 'simple':
+        sub_df_keys = ['Data']
+        event_type_labels = [None]
+        sub_df['Data'] = data_pd
+    elif mode == 'simple_signal_label':
+        sub_df_keys =  ["signal", "bkg"]
+        event_type_labels = ['signal', 'background']
+        signal = data_pd.loc[data_pd['signal_label'] == 1]
+        background = data_pd.loc[data_pd['signal_label']==0]
+        sub_df[sub_df_keys[0]] = signal
+        sub_df[sub_df_keys[1]] = background
+    else:
+        raise ValueError(f"The mode {mode} is not valid")
+    
+    figs = []
+    counts = []
+
+    if type(keys) != list:
+        keys = [keys]
+        keys_label = [keys_label]
+        bins_list = [bins_list]
+    
+    for i,key in enumerate(keys):
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+        # dictionary for counts/errors
+        sub_dicts = []
+        for k in range(len(list(sub_df.keys()))):
+            sub_dicts.append({'counts':[], 'errors':[]})
+        counts_j = dict(zip(list(sub_df.keys()), sub_dicts))
+
+        for j,event_type in enumerate(sub_df.keys()):
+            
+            df = sub_df[event_type]
+            
+            if 'genWeight' not in list(df.keys()):
+                df['genWeight'] = np.ones_like(df[list(df.keys())[0]])
+            print(key)
+            print(i)
+            print(list(df.keys()))
+            c,b = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight'])
+            c2,_ = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight']**2)
+            if normalize:
+                norm = np.sum(c)
+                c /= norm
+                c2 /= norm**2
+            error = np.sqrt(c2)
+
+            counts_j[event_type]['counts'] = c
+            counts_j[event_type]['errors'] = error
+            
+            if event_type_labels[j] != None:
+                ax.stairs(c, b, label=event_type_labels[j], linewidth=2)
+            else:
+                ax.stairs(c, b, linewidth=2)
+            # ax.errorbar((b[1:]+b[:-1])/2, c, yerr = np.sqrt(c2), marker = '.',drawstyle = 'steps-mid', color=colors[j])
+            ax.errorbar((b[1:]+b[:-1])/2, c, yerr = error,fmt='.', color='k', linewidth=1)
+            ax.set_xlabel(keys_label[i])
+            if mode != 'simple':
+                ax.legend()
+            ax.grid(True)
+        figs.append(fig)
+        counts.append(counts_j)
+    if return_counts:
+        return figs, counts
+    return figs
     
