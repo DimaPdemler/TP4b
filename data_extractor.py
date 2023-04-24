@@ -5,6 +5,13 @@ from fnmatch import filter
 from numpy import unique, array, empty, concatenate, ones
 from numpy.random import choice
 from utils import isolate_int, count_tauh, call_dict_with_list, replace_prefix_in_list
+from copy import deepcopy
+
+# Global variables
+output_vars_v1 = ['event', 'genWeight', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+output_vars_v2 = ['event', 'genWeight', 'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+
+#===================================================================================================
 
 class Data_extractor():
     """
@@ -84,7 +91,7 @@ class Data_extractor():
                     By default, data will contain the entries "signal_label" (1 for signal, 0 for background), "channel" and "event_type" (name of the 
                     file in which the events were taken)
         """
-        total_keys = self.output_vars.copy()
+        total_keys = deepcopy(self.output_vars)
         total_keys.extend(['signal_label', 'channel', 'event_type'])
         if with_mass_hyp:
             total_keys.append('mass_hyp')
@@ -169,13 +176,12 @@ class Data_extractor():
                 data['event_type'] = [filename.replace('.root','')]*n
 
         return data
-
-
-
+    
+#===================================================================================================
         
 class Data_extractor_v1(Data_extractor):
     def __init__(self, channel):
-        output_vars = ['event', 'genWeight', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+        output_vars = deepcopy(output_vars_v1)
         functions =[None, None, deltaR, deltaR, deltaR, sum_pt, transverse_mass, transverse_mass, transverse_mass, total_transverse_mass, count_tauh]
         raw_vars_general = ['event', 'genWeight', 'MET_pt', 'MET_phi']
         raw_vars_lepton1=['_eta', '_mass', '_phi', '_pt', '_genPartFlav']
@@ -191,7 +197,7 @@ class Data_extractor_v1(Data_extractor):
         
 class Data_extractor_v2(Data_extractor):
     def __init__(self, channel):
-        output_vars = ['event', 'genWeight', 'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+        output_vars = deepcopy(output_vars_v2)
         functions =[None, None, deltaphi, deltaphi, deltaphi, deltaeta, deltaeta, deltaeta, deltaR, deltaR, deltaR, sum_pt, transverse_mass, transverse_mass, transverse_mass, total_transverse_mass, count_tauh]
         raw_vars_general = ['event', 'genWeight', 'MET_pt', 'MET_phi']
         raw_vars_lepton1=['_eta', '_mass', '_phi', '_pt', '_genPartFlav']
@@ -206,3 +212,5 @@ class Data_extractor_v2(Data_extractor):
         super().__init__(channel, raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
                          raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars)
         
+
+
