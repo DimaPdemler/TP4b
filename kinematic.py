@@ -2,6 +2,42 @@ from numpy import sqrt, cos, pi
 
 from vector import array
 
+def deltaphi(*args):
+    """
+    Arguments:
+        -phi1 : azimuthal angle of the first particle
+        -phi2 : azimuthal angle of the second particle    
+    """
+    if len(args) == 1:
+        if len(args[0]) != 2:
+            raise TypeError("Wrong number of arguments")
+        phi1 = args[0][0]
+        phi2 = args[0][1]
+    elif len(args) == 2:
+        phi1 = args[0]
+        phi2 = args[1]
+    else:
+        raise TypeError("Wrong number of arguments")
+    return abs((((phi1-phi2)+ pi) % (2*pi)) - pi)
+
+def deltaeta(*args):
+    """
+    Arguments:
+        -eta1 : pseudorapidity of the first particle
+        -eta2 : pseudorapidity of the second particle    
+    """
+    if len(args) == 1:
+        if len(args[0]) != 2:
+            raise TypeError("Wrong number of arguments")
+        eta1 = args[0][0]
+        eta2 = args[0][1]
+    elif len(args) == 2:
+        eta1 = args[0]
+        eta2 = args[1]
+    else:
+        raise TypeError("Wrong number of arguments")
+    return abs(eta1-eta2)
+
 def deltaR(*args):
     """
     Arguments:
@@ -24,7 +60,7 @@ def deltaR(*args):
         phi2 = args[3]
     else:
         raise TypeError("Wrong number of arguments")
-    return sqrt((eta1-eta2)**2+((((phi1-phi2)+ pi) % (2*pi)) - pi)**2) # type: ignore
+    return sqrt(deltaeta(eta1, eta2)**2+deltaphi(phi1, phi2)**2) # type: ignore
 
 def sum_pt(*args):
     """
