@@ -161,4 +161,5 @@ cython_debug/
 
 # Other
 saved_models
+saved_models/
 test.ipynb
