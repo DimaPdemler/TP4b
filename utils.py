@@ -17,6 +17,8 @@ def isolate_int(string, separators):
 
     return ints
 
+#######################################################
+
 def normalize(dataframe, key, sum, weight_name='genWeight'):
     """
     Input :
@@ -50,7 +52,8 @@ def normalize(dataframe, key, sum, weight_name='genWeight'):
         dataframe = dataframe.to_dict()
     
     return dataframe
-   
+
+#######################################################
 
 def count_tauh(*args):
     """
@@ -86,6 +89,7 @@ def count_tauh(*args):
     
     return n_tauh 
 
+#######################################################
     
 def call_dict_with_list(dictionary, list_):
     """
@@ -102,6 +106,8 @@ def call_dict_with_list(dictionary, list_):
         for el in list_:
             sublist.append(call_dict_with_list(dictionary, el))
         return sublist
+
+#######################################################
     
 def replace_prefix_in_list(list_, to_replace, replace_by):
     """
@@ -123,6 +129,7 @@ def replace_prefix_in_list(list_, to_replace, replace_by):
             sublist.append(replace_prefix_in_list(el, to_replace, replace_by))
         return sublist
     
+#######################################################
 
 def split_dataset(data, ratio_train = 0.75, shuffle = True, print_sizes = True):
     """
@@ -159,6 +166,8 @@ def split_dataset(data, ratio_train = 0.75, shuffle = True, print_sizes = True):
 
     return data_train, data_val, data_test, data_meas
 
+#######################################################
+
 def bucketize(dataframe, key, return_dict = True):
     """
     Input : 
@@ -188,7 +197,24 @@ def bucketize(dataframe, key, return_dict = True):
         return output, class_names
     return output
 
+#######################################################
+
 def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False):
+    """
+    Arguments:
+        -dataframe: pandas dataframe of dictionary containing the data
+        -keys: entries of the dataframe to be plotted
+        -keys_label: name of x-axis of the histogram for plot (i.e. each key in keys)
+        -bins_list: list of np.array representing the bin edges for each plot 
+        -normalize: if True, every subhistogram of each plot will be normalized to 1
+        -mode:  'simple' to plot only one type of data per plot
+                'simple_signal_label' to have signal and background histogram on each plot
+                'n_tauh' to separate the backgrounds with 0, 1 or 2 hadronic taus detected, on each plot
+        -return_counts : if True, the function returns the counts for each bin as well as the uncertainty on the bin
+    Output:
+        -figs: list of pyplot figures, one for each key in keys
+        -counts: (if renturn_counts) list of dictionaries containing the counts and the error on the bins, for each type of data (sub histograms) 
+    """
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
     if type(dataframe) == dict:
