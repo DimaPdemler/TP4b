@@ -138,8 +138,8 @@ def split_dataset(data, ratio_train = 0.75, shuffle = True, print_sizes = True):
     df = DataFrame.from_dict(data)
 
     data_tv = df.query("(event % 4 == 0) or (event % 4 == 1)")
-    data_test = df.query("event % 4 == 2")
-    data_meas = df.query("event % 4 == 3")
+    data_test = df.query("event % 4 == 2").reset_index(drop=True)
+    data_meas = df.query("event % 4 == 3").reset_index(drop=True)
 
     if shuffle:
         data_tv = data_tv.sample(frac=1).reset_index(drop=True)
