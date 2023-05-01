@@ -4,7 +4,7 @@ from os import listdir
 from fnmatch import filter
 from numpy import unique, array, empty, concatenate, ones
 from numpy.random import choice
-from utils import isolate_int, count_tauh, call_dict_with_list, replace_prefix_in_list
+from utils import isolate_int, count_tauh, call_dict_with_list, replace_prefix_in_list, flatten_2D_list
 from copy import deepcopy
 
 # Global variables
@@ -74,6 +74,7 @@ class Data_extractor():
 
         self.functions = functions
         self.output_vars = output_vars
+        self.flat_output_vars = flatten_2D_list(output_vars)
 
 
     def __call__(self, path, signal_prefix = ['HNL'], real_data_prefix = ['EGamma', 'SingleMuon', 'Tau'], data = None, file_list = None, with_mass_hyp = True):
@@ -91,15 +92,15 @@ class Data_extractor():
                     By default, data will contain the entries "signal_label" (1 for signal, 0 for background), "channel" and "event_type" (name of the 
                     file in which the events were taken)
         """
-        total_keys = deepcopy(self.output_vars)
+        total_keys = deepcopy(self.flat_output_vars)
         total_keys.extend(['signal_label', 'channel', 'event_type'])
         if with_mass_hyp:
             total_keys.append('mass_hyp')
         if data == None:
             value_list = []
-            for i in range(len(self.output_vars)):
+            for i in range(len(self.flat_output_vars)):
                 value_list.append(empty((0,)))
-            data = dict(zip(self.output_vars, value_list))
+            data = dict(zip(self.flat_output_vars, value_list))
         elif set(list(data.keys())) != set(total_keys):
             raise KeyError("The data keys don't match the names of the variable created by the data extractor : ", list(data.keys()), total_keys)
 
@@ -136,9 +137,15 @@ class Data_extractor():
             # Creation of the data
             for i, var in enumerate(self.output_vars):
                 if self.functions[i] == None:
+                    print(var)
+                    print(self.input_vars[i][0])
                     data[var] = concatenate((data[var], anatuple[self.input_vars[i][0]]))
                 else:
-                    data[var] = concatenate((data[var], self.functions[i](call_dict_with_list(anatuple, self.input_vars[i]))))
+                    if type(var) != list:
+                        var = [var]
+                    outputs = self.functions[i](call_dict_with_list(anatuple, self.input_vars[i]))
+                    for j,v in enumerate(var):
+                        data[v] = concatenate((data[v], outputs[j]))
 
             label = 0
             mass = ones((n,))
@@ -178,6 +185,19 @@ class Data_extractor():
         return data
     
 #===================================================================================================
+
+class Data_extractor_test(Data_extractor):
+    def __init__(self):
+        output_vars = ['test1', ['test_mix1', 'test_mix2'], 'test2']
+        functions = [None, lambda a : (a[0]*a[1], a[0]+a[1]), lambda a : 2*a]
+        raw_vars_general = ['test1', 'test2']
+        raw_vars_lepton1 = []
+        raw_vars_lepton2 = []
+        raw_vars_lepton3 = []
+        input_vars = [['test1'], ['test1', 'test2'], ['test2']]
+        super().__init__(channel='tte', raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
+                         raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars, ) 
+
         
 class Data_extractor_v1(Data_extractor):
     def __init__(self, channel):

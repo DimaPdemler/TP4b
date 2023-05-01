@@ -2,6 +2,8 @@ from numbers import Number
 import numpy as np
 from pandas import DataFrame
 from matplotlib import pyplot as plt
+from functools import reduce
+from operator import iconcat
 
 def isolate_int(string, separators):
     if type(separators) != list:
@@ -302,3 +304,15 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
         return figs, counts
     return figs
     
+    #######################################################
+
+def flatten_2D_list(multi_dim_list):
+    new_list = []
+    for ele in multi_dim_list:
+        if type(ele) is list:
+            new_list.append(ele)
+        else:
+            new_list.append([ele])
+    return reduce(iconcat, new_list, [])
+        
+
