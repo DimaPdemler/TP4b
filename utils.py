@@ -57,26 +57,27 @@ def normalize(dataframe, key, sum, weight_name='genWeight'):
 
 #######################################################
 
-def count_tauh(*args):
+def count_tauh(channel, genPartFlavs_1, genPartFlavs_2, genPartFlavs_3):
     """
     Input : 
         -channel : string of three characters corresponding to the three prompt leptons in the decay
-        -L_genPartFlav : 3 (1 for each lepton) arguments describing the flavour of genParticle
+        -genPartFlavs : 3 (1 for each lepton) arguments describing the flavour of genParticle
     Output :
         -number of hadronic taus present in the event (either 0, 1 or 2) 
     """
-    if len(args) == 1:
-        if len(args[0]) != 4:
-            raise TypeError("Wrong number of arguments")
-        channel = args[0][0][0]
-        genPartFlavs = args[0][1:]
-    elif len(args) == 4:
-        channel = args[0][0]
-        genPartFlavs = args[1:]
-    else:
-        raise TypeError("Wrong number of arguments")
-    
+    # if len(args) == 1:
+    #     if len(args[0]) != 4:
+    #         raise TypeError("Wrong number of arguments")
+    #     channel = args[0][0][0]
+    #     genPartFlavs = args[0][1:]
+    # elif len(args) == 4:
+    #     channel = args[0][0]
+    #     genPartFlavs = args[1:]
+    # else:
+    #     raise TypeError("Wrong number of arguments")
+    channel = channel[0]
     is_list = False
+    genPartFlavs = [genPartFlavs_1, genPartFlavs_2, genPartFlavs_3]
     if type(genPartFlavs[0]) == list:
         is_list = True
         for lepton_flav in genPartFlavs:
@@ -274,9 +275,6 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
             
             if 'genWeight' not in list(df.keys()):
                 df['genWeight'] = np.ones_like(df[list(df.keys())[0]])
-            print(key)
-            print(i)
-            print(list(df.keys()))
             c,b = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight'])
             c2,_ = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight']**2)
             if normalize:
@@ -305,6 +303,8 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
     return figs
     
     #######################################################
+
+#######################################################
 
 def flatten_2D_list(multi_dim_list):
     new_list = []
