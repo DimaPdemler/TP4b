@@ -2,14 +2,57 @@ from kinematic import *
 from uproot import open
 from os import listdir
 from fnmatch import filter
-from numpy import unique, array, empty, concatenate, ones
+from numpy import ravel, unique, array, empty, concatenate, ones, logical_and
+from numpy import abs as np_abs
 from numpy.random import choice
 from utils import isolate_int, count_tauh, call_dict_with_list, replace_prefix_in_list, flatten_2D_list
 from copy import deepcopy
 
 # Global variables
 output_vars_v1 = ['event', 'genWeight', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
-output_vars_v2 = ['event', 'genWeight', 'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+output_vars_v2 = ['event', 'genWeight', 'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 
+                  'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot', 'n_tauh']
+output_vars_v3 = ['event', 'genWeight', 'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 'deltaeta_12', 'deltaeta_13', 'deltaeta_23',
+                   'deltaR_12', 'deltaR_13', 'deltaR_23', 'pt_123', 'mt_12', 'mt_13', 'mt_23', 'Mt_tot',
+                    ['HNL_CM_angle_with_MET_1', 'HNL_CM_angle_with_MET_2'], ['W_CM_angle_HNL_1', 'W_CM_angle_HNL_2'], 
+                    ['W_CM_angle_HNL_with_MET_1', 'W_CM_angle_HNL_with_MET_2'], ['HNL_CM_mass_1', 'HNL_CM_mass_2'],
+                    ['HNL_CM_mass_with_MET_1', 'HNL_CM_mass_with_MET_2'], 'n_tauh']
+output_vars_v4 = ['event', 'genWeight', 
+                  'charge_1', 'charge_2', 'charge_3', 
+                  'pt_1', 'pt_2', 'pt_3', 'pt_MET', 
+                  'eta_1', 'eta_2', 'eta_3',
+                  'mass_1', 'mass_2', 'mass_3', 
+                  'deltaphi_12', 'deltaphi_13', 'deltaphi_23', 
+                  'deltaphi_1MET', 'deltaphi_2MET', 'deltaphi_3MET',
+                  ['deltaphi_1(23)', 'deltaphi_2(13)', 'deltaphi_3(12)', 
+                  'deltaphi_MET(12)', 'deltaphi_MET(13)', 'deltaphi_MET(23)',
+                  'deltaphi_1(2MET)', 'deltaphi_1(3MET)', 'deltaphi_2(1MET)', 'deltaphi_2(3MET)', 'deltaphi_3(1MET)', 'deltaphi_3(2MET)'],
+                  'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 
+                  ['deltaeta_1(23)', 'deltaeta_2(13)', 'deltaeta_3(12)'],
+                  'deltaR_12', 'deltaR_13', 'deltaR_23', 
+                  ['deltaR_1(23)', 'delta_2(13)', 'delta_3(12)'],
+                  'pt_123',
+                  'mt_12', 'mt_13', 'mt_23', 
+                  'mt_1MET', 'mt_2MET', 'mt_3MET',
+                  ['mt_1(23)', 'mt_2(13)', 'mt_3(12)',
+                  'mt_MET(12)', 'mt_MET(13)', 'mt_MET(23)',
+                  'mt_1(2MET)', 'mt_1(3MET)', 'mt_2(1MET)', 'mt_2(3MET)', 'mt_3(1MET)', 'mt_3(2MET)'],
+                  'mass_12', 'mass_13', 'mass_23',
+                  'mass_123',
+                  'Mt_tot',
+                  ['HNL_CM_angle_with_MET_1', 'HNL_CM_angle_with_MET_2'], 
+                  ['W_CM_angle_to_plane_1', 'W_CM_angle_to_plane_2'], ['W_CM_angle_to_plane_with_MET_1', 'W_CM_angle_to_plane_with_MET_2'],
+                  ['HNL_CM_mass_with_MET_1', 'HNL_CM_mass_with_MET_2'], 
+                  ['W_CM_angle_12','W_CM_angle_13', 'W_CM_angle_23', 'W_CM_angle_1MET', 'W_CM_angle_2MET', 'W_CM_angle_3MET'],
+                  'n_tauh']
+
+"""deltaphi_1MET+..."""
+"""deltaphi deltaR deltaeta : between 1(2+3)... and also with MET for deltaphi"""
+"""deltaphi : (1,2,3)MET"""
+"""mt : (1+2)MET, (1+2)3..."""
+"""mass : (1+2), ... without MET"""
+"""mass : (1+2+3)"""
+
 
 #===================================================================================================
 
@@ -129,8 +172,93 @@ class Data_extractor():
                 continue
 
             # Raw data loading
-            anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, library="np") # type: ignore
+            print(self.channel)
+            limit_charge = 3
+            limit_tau_jet = 5
+            limit_em_iso = 0.15
+
+            if self.channel == 'tte':
+                # vars_to_load = deepcopy(self.raw_vars)
+                # new_vars = ['Tau1_idDeepTau2018v2p5VSjet', 'Tau2_idDeepTau2018v2p5VSjet', 'Electron_pfRelIso03_all', 'Tau1_charge', 'Tau2_charge', 'Electron_charge']
+                # for new_var in new_vars:
+                #     if new_var not in vars_to_load:
+                #         vars_to_load.append(new_var)
+                # print(vars_to_load)
+                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
+                # anatuple = anatuple[abs(anatuple['Tau1_charge'] + anatuple['Tau2_charge'] + anatuple['Electron_charge']) < limit_charge]
+                # anatuple = anatuple[anatuple['Tau1_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Tau2_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Electron_pfRelIso03_all'] < limit_em_iso]
+                # anatuple = anatuple[self.raw_vars]
+                cut = '(abs(Tau1_charge + Tau2_charge + Electron_charge) < {}) & (Tau1_idDeepTau2018v2p5VSjet >= {}) & (Tau2_idDeepTau2018v2p5VSjet >= {}) & (Electron_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_tau_jet, limit_em_iso)
+
+            if self.channel == 'tee':
+                # vars_to_load = deepcopy(self.raw_vars)
+                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Electron1_pfRelIso03_all', 'Electron2_pfRelIso03_all', 'Tau_charge', 'Electron1_charge', 'Electron2_charge']
+                # for new_var in new_vars:
+                #     if new_vars not in vars_to_load:
+                #         vars_to_load.append(new_var)
+                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
+                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Electron1_charge'] + anatuple['Electron2_charge']) < limit_charge]
+                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Electron1_pfRelIso03_all'] < limit_em_iso]
+                # anatuple = anatuple[anatuple['Electron2_pfRelIso03_all'] < limit_em_iso]
+                cut = '(abs(Tau_charge + Electron1_charge + Electron2_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Electron1_pfRelIso03_all < {}) & (Electron2_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
+
+            if self.channel == 'tem':
+                # vars_to_load = deepcopy(self.raw_vars)
+                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Electron_pfRelIso03_all', 'Muon_pfRelIso03_all', 'Tau_charge', 'Electron_charge', 'Muon_charge']
+                # for new_var in new_vars:
+                #     if new_vars not in vars_to_load:
+                #         vars_to_load.append(new_var)
+                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
+                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Electron_charge'] + anatuple['Muon_charge']) < limit_charge]
+                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Electron_pfRelIso03_all'] < limit_em_iso]
+                # anatuple = anatuple[anatuple['Muon_pfRelIso03_all'] < limit_em_iso]
+                cut = '(abs(Tau_charge + Electron_charge + Muon_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Electron_pfRelIso03_all < {}) & (Muon_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
+
+            if self.channel == 'tmm':
+                # vars_to_load = deepcopy(self.raw_vars)
+                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Muon1_pfRelIso03_all', 'Muon2_pfRelIso03_all', 'Tau_charge', 'Muon1_charge', 'Muon2_charge']
+                # for new_var in new_vars:
+                #     if new_vars not in vars_to_load:
+                #         vars_to_load.append(new_var)
+                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
+                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Muon1_charge'] + anatuple['Muon2_charge']) < limit_charge]
+                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Muon1_pfRelIso03_all'] < limit_em_iso]
+                # anatuple = anatuple[anatuple['Muon2_pfRelIso03_all'] < limit_em_iso]
+                cut = '(abs(Tau_charge + Muon1_charge + Muon2_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Muon1_pfRelIso03_all < {}) & (Muon2_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
+
+            if self.channel == 'ttm':
+                # vars_to_load = deepcopy(self.raw_vars)
+                # new_vars = ['Tau1_idDeepTau2018v2p5VSjet', 'Tau2_idDeepTau2018v2p5VSjet', 'Muon_pfRelIso03_all', 'Tau1_charge', 'Tau2_charge', 'Muon_charge']
+                # for new_var in new_vars:
+                #     if new_vars not in vars_to_load:
+                #         vars_to_load.append(new_var)
+                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
+                # anatuple = anatuple[abs(anatuple['Tau1_charge'] + anatuple['Tau2_charge'] + anatuple['Muon_charge']) < limit_charge]
+                # anatuple = anatuple[anatuple['Tau1_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Tau2_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
+                # anatuple = anatuple[anatuple['Muon_pfRelIso03_all'] < limit_em_iso]
+                cut = '(abs(Tau1_charge + Tau2_charge + Muon_charge) < {}) & (Tau1_idDeepTau2018v2p5VSjet >= {}) & (Tau2_idDeepTau2018v2p5VSjet >= {}) & (Muon_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_tau_jet, limit_em_iso)            
+            # anatuple_pd = deepcopy(anatuple)
+            # anatuple = anatuple.to_dict()
+            # anatuple.pop(anatuple_pd.index.name, None)
+            # for key in anatuple.keys():
+            #     anatuple[key] = ravel(anatuple[key])
+
+            anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, cut=cut, library='np')
+            
+            print("selection done")
             n = len(anatuple[list(anatuple.keys())[0]])
+            print(n)
+
+            if n==0:
+                print("No event selected -> root file passed")
+                continue
+
             anatuple['channel'] = [self.channel]*n
 
 
@@ -138,14 +266,16 @@ class Data_extractor():
             for i, var in enumerate(self.output_vars):
                 if self.functions[i] == None:
                     print(var)
-                    print(self.input_vars[i][0])
                     data[var] = concatenate((data[var], anatuple[self.input_vars[i][0]]))
                 else:
-                    if type(var) != list:
-                        var = [var]
-                    outputs = self.functions[i](call_dict_with_list(anatuple, self.input_vars[i]))
-                    for j,v in enumerate(var):
-                        data[v] = concatenate((data[v], outputs[j]))
+                    print("reached var ", var)
+                    outputs = self.functions[i](*call_dict_with_list(anatuple, self.input_vars[i]))
+                    if type(var) == list:
+                        print(len(var))
+                        for j,v in enumerate(var):
+                            data[v] = concatenate((data[v], outputs[j]))
+                    else:
+                        data[var] = concatenate((data[var], outputs))
 
             label = 0
             mass = ones((n,))
@@ -232,5 +362,76 @@ class Data_extractor_v2(Data_extractor):
         super().__init__(channel, raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
                          raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars)
         
+class Data_extractor_v3(Data_extractor):
+    def __init__(self, channel):
+        output_vars = deepcopy(output_vars_v3)
+        functions =[None, None, deltaphi, deltaphi, deltaphi, deltaeta, deltaeta, deltaeta, deltaR, deltaR, deltaR, sum_pt, transverse_mass,
+                     transverse_mass, transverse_mass, total_transverse_mass, HNL_CM_angles_with_MET, W_CM_angles_HNL, 
+                     W_CM_angles_HNL_with_MET, HNL_CM_masses, HNL_CM_masses_with_MET, count_tauh]
+        raw_vars_general = ['event', 'genWeight', 'MET_pt', 'MET_phi']
+        lepton_specific = ['_eta', '_mass', '_phi', '_pt', '_charge', '_genPartFlav']
+        raw_vars_lepton1 = lepton_specific
+        raw_vars_lepton2 = lepton_specific
+        raw_vars_lepton3 = lepton_specific
+        input_vars = [['event'], ['genWeight'], ['1_phi', '2_phi'], ['1_phi', '3_phi'], ['2_phi', '3_phi'], ['1_eta', '2_eta'], 
+                      ['1_eta', '3_eta'], ['2_eta', '3_eta'], ['1_eta', '2_eta', '1_phi', '2_phi'], ['1_eta', '3_eta', '1_phi', '3_phi'],
+                      ['2_eta', '3_eta', '2_phi', '3_phi'], [['1_pt', '2_pt', '3_pt'],['1_phi', '2_phi', '3_phi'],['1_eta', '2_eta', '3_eta'],
+                       ['1_mass', '2_mass', '3_mass']], ['1_pt', '2_pt', '1_phi', '2_phi'], ['1_pt', '3_pt', '1_phi', '3_phi'], 
+                      ['2_pt', '3_pt', '2_phi', '3_phi'], ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['channel', '1_genPartFlav', '2_genPartFlav', '3_genPartFlav']]
+        super().__init__(channel, raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
+                         raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars)
+        
+
+class Data_extractor_v4(Data_extractor):
+    def __init__(self, channel):
+        output_vars = deepcopy(output_vars_v3)
+        functions =[None, None,                 # general
+                    None, None, None,           # charges
+                    None, None, None, None,     # pts
+                    None, None, None,           # etas
+                    None, None, None,           # masses
+                    deltaphi, deltaphi, deltaphi, 
+                    deltaphi, deltaphi, deltaphi,
+                    deltaphi3,
+                    deltaeta, deltaeta, deltaeta, 
+                    deltaeta3,
+                    deltaR, deltaR, deltaR, 
+                    deltaR3,
+                    sum_pt, 
+                    transverse_mass, transverse_mass, transverse_mass, 
+                    transverse_mass, transverse_mass, transverse_mass,
+                    transverse_mass3,
+                    invariant_mass2,
+                    invariant_mass3,
+                    total_transverse_mass, 
+                    HNL_CM_angles_with_MET, 
+                    W_CM_angles_to_plane, W_CM_angles_to_plane_with_MET, 
+                    HNL_CM_masses_with_MET, 
+                    W_CM_angles,
+                    count_tauh]
+        raw_vars_general = ['event', 'genWeight', 'MET_pt', 'MET_phi']
+        lepton_specific = ['_eta', '_mass', '_phi', '_pt', '_charge', '_genPartFlav']
+        raw_vars_lepton1 = lepton_specific
+        raw_vars_lepton2 = lepton_specific
+        raw_vars_lepton3 = lepton_specific
+        input_vars = [['event'], ['genWeight'], ['1_phi', '2_phi'], ['1_phi', '3_phi'], ['2_phi', '3_phi'], ['1_eta', '2_eta'], 
+                      ['1_eta', '3_eta'], ['2_eta', '3_eta'], ['1_eta', '2_eta', '1_phi', '2_phi'], ['1_eta', '3_eta', '1_phi', '3_phi'],
+                      ['2_eta', '3_eta', '2_phi', '3_phi'], [['1_pt', '2_pt', '3_pt'],['1_phi', '2_phi', '3_phi'],['1_eta', '2_eta', '3_eta'],
+                       ['1_mass', '2_mass', '3_mass']], ['1_pt', '2_pt', '1_phi', '2_phi'], ['1_pt', '3_pt', '1_phi', '3_phi'], 
+                      ['2_pt', '3_pt', '2_phi', '3_phi'], ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
+                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+                      ['channel', '1_genPartFlav', '2_genPartFlav', '3_genPartFlav']]
+        super().__init__(channel, raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
+                         raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars)
 
 
