@@ -39,15 +39,56 @@ def deltaphi(phi1, phi2):
 
 # #######################################################
 
-# def deltaphi3(phi_1, phi_2, phi_3, phi_MET):
-#     """
-#     Arguments:
-#         -phi_1 : azimuthal angle of the first lepton
-#         -phi_2 : azimuthal angle of the second lepton
-#         -phi_3 : azimuthal angle of the third lepton
-#         -phi_MET : azimuthal angle of the missing transverse momentum    
-#     """
-#     return [deltaphi()]
+def deltaphi3(pt_1, pt_2, pt_3, pt_MET,
+                phi_1, phi_2, phi_3, phi_MET,
+                eta_1, eta_2, eta_3,
+                mass_1, mass_2, mass_3):
+    """
+    Arguments:
+        -pt_1,2,3 : transverse momentum of the leptons
+        -pt_MET : norm of missing transverse momentum 
+        -phi_1,2,3 : azimuthal angle of the leptons
+        -phi_MET : azimuthal angle of the missing transverse momentum 
+        -eta_1,2,3 : pseudorapidity of the leptons 
+        -eta_1,2,3 : mass of the leptons 
+    Output:
+        -All combinations of deltaphi between 1 object and the sum of two others
+    """
+    n = len(pt_1)
+    eta_MET = []
+    mass_MET = []
+    if type(pt_1) == list:
+        for i in range(n):
+            eta_MET.append(0)
+            mass_MET.append(0)
+    else:
+        eta_MET = zeros_like(pt_1)
+        mass_MET = zeros_like(pt_1)
+    vector_MET = arr({"pt" : pt_MET,
+                      "phi" : phi_MET,
+                      "eta" : eta_MET,
+                      "M" : mass_MET})
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    vectors = [vector_1, vector_2, vector_3, vector_MET]
+
+    groups = [[0,1,2], [1,0,2], [2,0,1], [3,0,1], [3,0,2], [3,1,2], [0,1,3], [0,2,3], [1,0,3], [1,2,3], [2,0,3], [2,1,3]]
+    deltaphis = []
+
+    for comb in groups:
+        deltaphis.append(deltaphi(vectors[comb[0]].phi, (vectors[comb[1]]+vectors[comb[2]]).phi)) # type: ignore
+
+    return deltaphis
 
 #######################################################
 
@@ -68,6 +109,43 @@ def deltaeta(eta1, eta2):
     # else:
     #     raise TypeError("Wrong number of arguments")
     return abs(eta1-eta2)
+
+#######################################################
+
+def deltaeta3(pt_1, pt_2, pt_3,
+                phi_1, phi_2, phi_3,
+                eta_1, eta_2, eta_3,
+                mass_1, mass_2, mass_3):
+    """
+    Arguments:
+        -pt_1,2,3 : transverse momentum of the leptons
+        -phi_1,2,3 : azimuthal angle of the leptons
+        -eta_1,2,3 : pseudorapidity of the leptons 
+        -eta_1,2,3 : mass of the leptons 
+    Output:
+        -All combinations of deltaeta between 1 lepton and the sum of two others
+    """
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    vectors = [vector_1, vector_2, vector_3]
+
+    groups = [[0,1,2], [1,0,2], [2,0,1]]
+    deltaetas = []
+
+    for comb in groups:
+        deltaetas.append(deltaeta(vectors[comb[0]].eta, (vectors[comb[1]]+vectors[comb[2]]).eta)) # type: ignore
+
+    return deltaetas
 
 #######################################################
 
@@ -97,6 +175,44 @@ def deltaR(eta1, eta2, phi1, phi2):
 
 #######################################################
 
+def deltaR3(pt_1, pt_2, pt_3,
+                phi_1, phi_2, phi_3,
+                eta_1, eta_2, eta_3,
+                mass_1, mass_2, mass_3):
+    """
+    Arguments:
+        -pt_1,2,3 : transverse momentum of the leptons
+        -phi_1,2,3 : azimuthal angle of the leptons
+        -eta_1,2,3 : pseudorapidity of the leptons 
+        -eta_1,2,3 : mass of the leptons 
+    Output:
+        -All combinations of deltaR between 1 lepton and the sum of two others
+    """
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    vectors = [vector_1, vector_2, vector_3]
+
+    groups = [[0,1,2], [1,0,2], [2,0,1]]
+    deltaRs = []
+
+    for comb in groups:
+        vec_sum = vectors[comb[1]]+vectors[comb[2]]  # type: ignore
+        deltaRs.append(deltaR(vectors[comb[0]].eta, vec_sum.eta, vectors[comb[0]].phi, vec_sum.phi))  # type: ignore
+
+    return deltaRs
+
+#######################################################
+
 def sum_pt(pts, phis, etas, masses):
     """
     Aguments : 
@@ -107,6 +223,8 @@ def sum_pt(pts, phis, etas, masses):
     All arguments have 2 coordinates :
         -the first component corresponds to the type of particle (muon, tau, MET)
         -The second coordinate corresponds to the event.
+    Output : 
+        -Sum of the transverse momentum of the three leptons and the MET
     """
     # if len(args) == 1:
     #     if len(args[0]) != 4:
@@ -130,8 +248,8 @@ def sum_pt(pts, phis, etas, masses):
         p_tot += arr({"pt" : pts[i],
                     "phi" : phis[i],
                     "eta" : etas[i],
-                    "M" : masses[i]})
-    return p_tot.pt
+                    "M" : masses[i]})   # type: ignore
+    return p_tot.pt # type: ignore
 
 #######################################################
 
@@ -158,6 +276,60 @@ def transverse_mass(pt_1, pt_2, phi_1, phi_2):
     # else:
     #     raise TypeError("Wrong number of arguments")
     return sqrt(2.0*pt_1*pt_2*(1.0 - cos(phi_1-phi_2)))
+
+#######################################################
+
+def transverse_mass3(pt_1, pt_2, pt_3, pt_MET,
+                phi_1, phi_2, phi_3, phi_MET,
+                eta_1, eta_2, eta_3,
+                mass_1, mass_2, mass_3):
+    """
+    Arguments:
+        -pt_1,2,3 : transverse momentum of the leptons
+        -pt_MET : norm of missing transverse momentum 
+        -phi_1,2,3 : azimuthal angle of the leptons
+        -phi_MET : azimuthal angle of the missing transverse momentum 
+        -eta_1,2,3 : pseudorapidity of the leptons 
+        -eta_1,2,3 : mass of the leptons 
+    Output:
+        -All combinations of transverse masses between 1 object and the sum of two others
+    """
+    n = len(pt_1)
+    eta_MET = []
+    mass_MET = []
+    if type(pt_1) == list:
+        for i in range(n):
+            eta_MET.append(0)
+            mass_MET.append(0)
+    else:
+        eta_MET = zeros_like(pt_1)
+        mass_MET = zeros_like(pt_1)
+    vector_MET = arr({"pt" : pt_MET,
+                      "phi" : phi_MET,
+                      "eta" : eta_MET,
+                      "M" : mass_MET})
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    vectors = [vector_1, vector_2, vector_3, vector_MET]
+
+    groups = [[0,1,2], [1,0,2], [2,0,1], [3,0,1], [3,0,2], [3,1,2], [0,1,3], [0,2,3], [1,0,3], [1,2,3], [2,0,3], [2,1,3]]
+    transverse_masses = []
+
+    for comb in groups:
+        vec_sum = vectors[comb[0]] + vectors[comb[1]]   # type: ignore
+        transverse_masses.append(transverse_mass(vectors[comb[0]].pt, vec_sum.pt, vectors[comb[0]].phi, vec_sum.phi))   # type: ignore
+
+    return transverse_masses
 
 #######################################################
 
@@ -198,6 +370,31 @@ def total_transverse_mass(pt_1, pt_2, pt_3, pt_miss, phi_1, phi_2, phi_3, phi_mi
     return sqrt(transverse_mass(pt_1, pt_2, phi_1, phi_2)**2 + transverse_mass(pt_1, pt_3, phi_1, phi_3)**2 + 
                 transverse_mass(pt_2, pt_3, phi_2, phi_3)**2 + transverse_mass(pt_1, pt_miss, phi_1, phi_miss)**2 +
                 transverse_mass(pt_2, pt_miss, phi_2, phi_miss)**2 + transverse_mass(pt_3, pt_miss, phi_3, phi_miss)**2)
+
+#######################################################
+
+def invariant_mass(pts, phis, etas, masses):
+    """
+    Aguments : 
+        -pts : transverse momentum of the particles
+        -phis : azimuthal angles of the particles
+        -etas : pseudorapidity of the particles 
+        -masses : masses of the particles 
+    All arguments have 2 coordinates :
+        -the first component corresponds to the type of particle (muon, tau, MET)
+        -The second coordinate corresponds to the event.
+    Output : invariant mass of the sum of the 4-vectors of all objects passed to the function
+    """
+    p_tot = arr({"pt" : pts[0],
+                "phi" : phis[0],
+                "eta" : etas[0],
+                "M" : masses[0]})
+    for i in range(1,len(masses)):
+        p_tot += arr({"pt" : pts[i],
+                    "phi" : phis[i],
+                    "eta" : etas[i],
+                    "M" : masses[i]})   # type: ignore
+    return p_tot.mass   # type: ignore
 
 #######################################################
     
@@ -341,16 +538,16 @@ def HNL_CM_angles_with_MET(charge_1, charge_2, charge_3,
                         "eta" : etas[j],
                         "M" : masses[j]})
         
-        vector_tot = vector_i + vector_j + vector_MET
-        vector_i = vector_i.boostCM_of_p4(vector_tot)
-        vector_j = vector_j.boostCM_of_p4(vector_tot)
+        vector_tot = vector_i + vector_j + vector_MET   # type: ignore
+        vector_i = vector_i.boostCM_of_p4(vector_tot)   # type: ignore
+        vector_j = vector_j.boostCM_of_p4(vector_tot)   # type: ignore
         angle = vector_i.deltaangle(vector_j)
         angles.append(angle)
     return angles
 
 #######################################################   
 
-def W_CM_angles_HNL(charge_1, charge_2, charge_3,
+def W_CM_angles_to_plane(charge_1, charge_2, charge_3,
                     pt_1, pt_2, pt_3,
                     phi_1, phi_2, phi_3,
                     eta_1, eta_2, eta_3,
@@ -474,10 +671,10 @@ def W_CM_angles_HNL(charge_1, charge_2, charge_3,
                         "phi" : phis[j],
                         "eta" : etas[j],
                         "M" : masses[j]})
-        vector_tot = vector_i + vector_j + vector_first
-        vector_i = vector_i.boostCM_of_p4(vector_tot)
-        vector_j = vector_j.boostCM_of_p4(vector_tot)
-        vector_first = vector_first.boostCM_of_p4(vector_tot)
+        vector_tot = vector_i + vector_j + vector_first # type: ignore
+        vector_i = vector_i.boostCM_of_p4(vector_tot)   # type: ignore
+        vector_j = vector_j.boostCM_of_p4(vector_tot)   # type: ignore
+        vector_first = vector_first.boostCM_of_p4(vector_tot)   # type: ignore
         normal = vector_i.cross(vector_j)
         angle = vector_first.deltaangle(normal)
         angles.append(abs(pi/2-angle))
@@ -485,7 +682,7 @@ def W_CM_angles_HNL(charge_1, charge_2, charge_3,
     
 #######################################################   
 
-def W_CM_angles_HNL_with_MET(charge_1, charge_2, charge_3,
+def W_CM_angles_to_plane_with_MET(charge_1, charge_2, charge_3,
                            pt_1, pt_2, pt_3, pt_MET,
                            phi_1, phi_2, phi_3, phi_MET,
                            eta_1, eta_2, eta_3,
@@ -628,13 +825,133 @@ def W_CM_angles_HNL_with_MET(charge_1, charge_2, charge_3,
                         "phi" : phis[j],
                         "eta" : etas[j],
                         "M" : masses[j]})
-        vector_tot = vector_i + vector_j + vector_first + vector_MET
-        vector_i = vector_i.boostCM_of_p4(vector_tot)
-        vector_j = vector_j.boostCM_of_p4(vector_tot)
-        vector_first = vector_first.boostCM_of_p4(vector_tot)
+        vector_tot = vector_i + vector_j + vector_first + vector_MET    # type: ignore
+        vector_i = vector_i.boostCM_of_p4(vector_tot)   # type: ignore
+        vector_j = vector_j.boostCM_of_p4(vector_tot)   # type: ignore
+        vector_first = vector_first.boostCM_of_p4(vector_tot)   # type: ignore
         normal = vector_i.cross(vector_j)
         angle = vector_first.deltaangle(normal)
         angles.append(abs(pi/2-angle))
+    return angles
+
+####################################################### 
+
+def W_CM_angles(pt_1, pt_2, pt_3, pt_MET,
+                phi_1, phi_2, phi_3, phi_MET,
+                eta_1, eta_2, eta_3,
+                mass_1, mass_2, mass_3):
+    """
+    Arguments : 
+        -pt_1,2,3,MET : transverse momentum of the three leptons and the missing momentum
+        -phi_1,2,3,MET : azimuthal angle of the three leptons
+        -eta_1,2,3 : pseudorapidity of the three leptons
+        -mass_1,2,3 : mass of the three leptons
+    Output :
+        -Angle between the momenta of 2 objects in the center of mass frame of the first W boson (without considering missing momentum),
+         for all 6 combination of 2 objects
+    """
+
+    n = len(pt_1)
+    eta_MET = []
+    mass_MET = []
+    if type(pt_1) == list:
+        for i in range(n):
+            eta_MET.append(0)
+            mass_MET.append(0)
+    else:
+        eta_MET = zeros_like(pt_1)
+        mass_MET = zeros_like(pt_1)
+    vector_MET = arr({"pt" : pt_MET,
+                      "phi" : phi_MET,
+                      "eta" : eta_MET,
+                      "M" : mass_MET})
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    
+    vectors = [vector_1, vector_2, vector_3, vector_MET]
+    
+    vector_tot = vector_1 + vector_2 + vector_3 # type: ignore
+    
+    for i in range(len(vectors)):
+        vectors[i] = vectors[i].boostCM_of_p4(vector_tot)   # type: ignore
+    
+    pairs = [[0,1], [0,2], [1,2], [0,3], [1,3], [2,3]]
+    angles = []
+
+    for pair in pairs:
+        angle = vectors[pair[0]].deltaangle(vectors[pair[1]])   # type: ignore
+        angles.append(angle)
+    
+    return angles
+
+####################################################### 
+
+def W_CM_angles_with_MET(pt_1, pt_2, pt_3, pt_MET,
+                            phi_1, phi_2, phi_3, phi_MET,
+                            eta_1, eta_2, eta_3,
+                            mass_1, mass_2, mass_3):
+    """
+    Arguments : 
+        -pt_1,2,3,MET : transverse momentum of the three leptons and the missing momentum
+        -phi_1,2,3,MET : azimuthal angle of the three leptons
+        -eta_1,2,3 : pseudorapidity of the three leptons
+        -mass_1,2,3 : mass of the three leptons
+    Output :
+        -Angle between the momenta of 2 objects in the center of mass frame of the first W boson (with missing momentum),
+         for all 6 combination of 2 objects
+    """
+
+    n = len(pt_1)
+    eta_MET = []
+    mass_MET = []
+    if type(pt_1) == list:
+        for i in range(n):
+            eta_MET.append(0)
+            mass_MET.append(0)
+    else:
+        eta_MET = zeros_like(pt_1)
+        mass_MET = zeros_like(pt_1)
+    vector_MET = arr({"pt" : pt_MET,
+                      "phi" : phi_MET,
+                      "eta" : eta_MET,
+                      "M" : mass_MET})
+    vector_1 = arr({"pt" : pt_1,
+                      "phi" : phi_1,
+                      "eta" : eta_1,
+                      "M" : mass_1})
+    vector_2 = arr({"pt" : pt_2,
+                      "phi" : phi_2,
+                      "eta" : eta_2,
+                      "M" : mass_2})
+    vector_3 = arr({"pt" : pt_3,
+                      "phi" : phi_3,
+                      "eta" : eta_3,
+                      "M" : mass_3})
+    
+    vectors = [vector_1, vector_2, vector_3, vector_MET]
+    
+    vector_tot = vector_1 + vector_2 + vector_3 + vector_MET    # type: ignore
+    
+    for i in range(len(vectors)):
+        vectors[i] = vectors[i].boostCM_of_p4(vector_tot)   # type: ignore
+    
+    pairs = [[0,1], [0,2], [1,2], [0,3], [1,3], [2,3]]
+    angles = []
+
+    for pair in pairs:
+        angle = vectors[pair[0]].deltaangle(vectors[pair[1]])   # type: ignore
+        angles.append(angle)
+    
     return angles
 
 ####################################################### 
@@ -757,7 +1074,7 @@ def HNL_CM_masses(charge_1, charge_2, charge_3,
                         "phi" : phis[j],
                         "eta" : etas[j],
                         "M" : masses[j]})
-        vector_tot = vector_i + vector_j
+        vector_tot = vector_i + vector_j    # type: ignore
         HNL_masses.append(vector_tot.mass)
     return HNL_masses
 
@@ -900,7 +1217,7 @@ def HNL_CM_masses_with_MET(charge_1, charge_2, charge_3,
                         "phi" : phis[j],
                         "eta" : etas[j],
                         "M" : masses[j]})
-        vector_tot = vector_i + vector_j + vector_MET
+        vector_tot = vector_i + vector_j + vector_MET   # type: ignore
         HNL_masses.append(vector_tot.mass)
     return HNL_masses
 
