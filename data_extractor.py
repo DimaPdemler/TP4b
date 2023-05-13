@@ -30,7 +30,7 @@ output_vars_v4 = ['event', 'genWeight',
                   'deltaeta_12', 'deltaeta_13', 'deltaeta_23', 
                   ['deltaeta_1(23)', 'deltaeta_2(13)', 'deltaeta_3(12)'],
                   'deltaR_12', 'deltaR_13', 'deltaR_23', 
-                  ['deltaR_1(23)', 'delta_2(13)', 'delta_3(12)'],
+                  ['deltaR_1(23)', 'deltaR_2(13)', 'deltaR_3(12)'],
                   'pt_123',
                   'mt_12', 'mt_13', 'mt_23', 
                   'mt_1MET', 'mt_2MET', 'mt_3MET',
@@ -42,7 +42,8 @@ output_vars_v4 = ['event', 'genWeight',
                   'Mt_tot',
                   ['HNL_CM_angle_with_MET_1', 'HNL_CM_angle_with_MET_2'], 
                   ['W_CM_angle_to_plane_1', 'W_CM_angle_to_plane_2'], ['W_CM_angle_to_plane_with_MET_1', 'W_CM_angle_to_plane_with_MET_2'],
-                  ['HNL_CM_mass_with_MET_1', 'HNL_CM_mass_with_MET_2'], 
+                  ['HNL_CM_mass_1', 'HNL_CM_mass_2'], 
+				  ['HNL_CM_mass_with_MET_1', 'HNL_CM_mass_with_MET_2'], 
                   ['W_CM_angle_12','W_CM_angle_13', 'W_CM_angle_23', 'W_CM_angle_1MET', 'W_CM_angle_2MET', 'W_CM_angle_3MET'],
                   'n_tauh']
 
@@ -177,6 +178,7 @@ class Data_extractor():
             limit_tau_jet = 5
             limit_em_iso = 0.15
 
+            cut = ''
             if self.channel == 'tte':
                 # vars_to_load = deepcopy(self.raw_vars)
                 # new_vars = ['Tau1_idDeepTau2018v2p5VSjet', 'Tau2_idDeepTau2018v2p5VSjet', 'Electron_pfRelIso03_all', 'Tau1_charge', 'Tau2_charge', 'Electron_charge']
@@ -249,7 +251,7 @@ class Data_extractor():
             # for key in anatuple.keys():
             #     anatuple[key] = ravel(anatuple[key])
 
-            anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, cut=cut, library='np')
+            anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, cut=cut, library='np') # type: ignore
             
             print("selection done")
             n = len(anatuple[list(anatuple.keys())[0]])
@@ -366,8 +368,8 @@ class Data_extractor_v3(Data_extractor):
     def __init__(self, channel):
         output_vars = deepcopy(output_vars_v3)
         functions =[None, None, deltaphi, deltaphi, deltaphi, deltaeta, deltaeta, deltaeta, deltaR, deltaR, deltaR, sum_pt, transverse_mass,
-                     transverse_mass, transverse_mass, total_transverse_mass, HNL_CM_angles_with_MET, W_CM_angles_HNL, 
-                     W_CM_angles_HNL_with_MET, HNL_CM_masses, HNL_CM_masses_with_MET, count_tauh]
+                     transverse_mass, transverse_mass, total_transverse_mass, HNL_CM_angles_with_MET, W_CM_angles_to_plane, 
+                     W_CM_angles_to_plane_with_MET, HNL_CM_masses, HNL_CM_masses_with_MET, count_tauh]
         raw_vars_general = ['event', 'genWeight', 'MET_pt', 'MET_phi']
         lepton_specific = ['_eta', '_mass', '_phi', '_pt', '_charge', '_genPartFlav']
         raw_vars_lepton1 = lepton_specific
@@ -390,8 +392,8 @@ class Data_extractor_v3(Data_extractor):
 
 class Data_extractor_v4(Data_extractor):
     def __init__(self, channel):
-        output_vars = deepcopy(output_vars_v3)
-        functions =[None, None,                 # general
+        output_vars = deepcopy(output_vars_v4)
+        functions =[None, None,                 # event, genWeight
                     None, None, None,           # charges
                     None, None, None, None,     # pts
                     None, None, None,           # etas
@@ -407,11 +409,12 @@ class Data_extractor_v4(Data_extractor):
                     transverse_mass, transverse_mass, transverse_mass, 
                     transverse_mass, transverse_mass, transverse_mass,
                     transverse_mass3,
-                    invariant_mass2,
-                    invariant_mass3,
+                    invariant_mass, invariant_mass, invariant_mass,
+                    invariant_mass,
                     total_transverse_mass, 
                     HNL_CM_angles_with_MET, 
-                    W_CM_angles_to_plane, W_CM_angles_to_plane_with_MET, 
+                    W_CM_angles_to_plane, W_CM_angles_to_plane_with_MET,
+			        HNL_CM_masses,
                     HNL_CM_masses_with_MET, 
                     W_CM_angles,
                     count_tauh]
@@ -420,18 +423,31 @@ class Data_extractor_v4(Data_extractor):
         raw_vars_lepton1 = lepton_specific
         raw_vars_lepton2 = lepton_specific
         raw_vars_lepton3 = lepton_specific
-        input_vars = [['event'], ['genWeight'], ['1_phi', '2_phi'], ['1_phi', '3_phi'], ['2_phi', '3_phi'], ['1_eta', '2_eta'], 
-                      ['1_eta', '3_eta'], ['2_eta', '3_eta'], ['1_eta', '2_eta', '1_phi', '2_phi'], ['1_eta', '3_eta', '1_phi', '3_phi'],
-                      ['2_eta', '3_eta', '2_phi', '3_phi'], [['1_pt', '2_pt', '3_pt'],['1_phi', '2_phi', '3_phi'],['1_eta', '2_eta', '3_eta'],
-                       ['1_mass', '2_mass', '3_mass']], ['1_pt', '2_pt', '1_phi', '2_phi'], ['1_pt', '3_pt', '1_phi', '3_phi'], 
-                      ['2_pt', '3_pt', '2_phi', '3_phi'], ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi'],
-                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
-                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
-                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
-                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
-                      ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
-                      ['channel', '1_genPartFlav', '2_genPartFlav', '3_genPartFlav']]
+        input_vars = [['event'], ['genWeight'], 
+			        ['1_charge'], ['2_charge'], ['3_charge'], 
+			        ['1_pt'], ['2_pt'], ['3_pt'], ['MET_pt'],
+			        ['1_eta'], ['2_eta'], ['3_eta'], 
+			        ['1_mass'], ['2_mass'], ['3_mass'], 
+			        ['1_phi', '2_phi'], ['1_phi', '3_phi'], ['2_phi', '3_phi'], 
+			        ['1_phi', 'MET_phi'], ['2_phi', 'MET_phi'], ['3_phi', 'MET_phi'], 
+			        ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['1_eta', '2_eta'], ['1_eta', '3_eta'], ['2_eta', '3_eta'], 
+			        ['1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['1_eta', '2_eta', '1_phi', '2_phi'], ['1_eta', '3_eta', '1_phi', '3_phi'], ['2_eta', '3_eta', '2_phi', '3_phi'], 
+			        ['1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        [['1_pt', '2_pt', '3_pt'],['1_phi', '2_phi', '3_phi'],['1_eta', '2_eta', '3_eta'], ['1_mass', '2_mass', '3_mass']], 
+			        ['1_pt', '2_pt', '1_phi', '2_phi'], ['1_pt', '3_pt', '1_phi', '3_phi'], ['2_pt', '3_pt', '2_phi', '3_phi'],
+			        ['1_pt', 'MET_pt', '1_phi', 'MET_phi'], ['2_pt', 'MET_pt', '2_phi', 'MET_phi'], ['3_pt', 'MET_pt', '3_phi', 'MET_phi'],
+			        ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        [['1_pt', '2_pt'],['1_phi', '2_phi'],['1_eta', '2_eta'], ['1_mass', '2_mass']], [['1_pt', '3_pt'],['1_phi', '3_phi'],['1_eta', '3_eta'], ['1_mass', '3_mass']], [['2_pt', '3_pt'],['2_phi', '3_phi'],['2_eta', '3_eta'], ['2_mass', '3_mass']], 	
+                    [['1_pt', '2_pt', '3_pt'],['1_phi', '2_phi', '3_phi'],['1_eta', '2_eta', '3_eta'], ['1_mass', '2_mass', '3_mass']], 
+			        ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi'],
+			        ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', '1_phi', '2_phi', '3_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'], 
+			        ['1_charge', '2_charge', '3_charge', '1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['1_pt', '2_pt', '3_pt', 'MET_pt', '1_phi', '2_phi', '3_phi', 'MET_phi', '1_eta', '2_eta', '3_eta', '1_mass', '2_mass', '3_mass'],
+			        ['channel', '1_genPartFlav', '2_genPartFlav', '3_genPartFlav']]
         super().__init__(channel, raw_vars_general=raw_vars_general, raw_vars_lepton1=raw_vars_lepton1, raw_vars_lepton2=raw_vars_lepton2, 
                          raw_vars_lepton3=raw_vars_lepton3, output_vars=output_vars, functions=functions, input_vars=input_vars)
-
 
