@@ -279,8 +279,11 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
             c2,_ = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight']**2)
             if normalize:
                 norm = np.sum(c)
-                c /= norm
-                c2 /= norm**2
+                if norm != 0:
+                    c /= norm
+                    c2 /= norm**2
+                else:
+                    c2 = np.zeros_like(c)
             error = np.sqrt(c2)
 
             counts_j[event_type]['counts'] = c
