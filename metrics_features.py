@@ -10,7 +10,6 @@ def fi_perm(model, test_df, input_vars, keys_shuffle):
         keys_shuffle = [keys_shuffle]
 
     test = deepcopy(test_df)
-
     x_test = test[input_vars]
     y_test = x_test.pop('signal_label').astype(float)
     
