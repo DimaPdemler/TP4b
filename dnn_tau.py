@@ -37,6 +37,7 @@ class Dnn_tau(Model):
 	def call(self, x):
 		# Embedding of the channel column
 		if 'channel' in self.input_vars:
+			print('test channel')
 			ch_var_idx = self.input_vars.index('channel')
 			x = concat([x[:,:ch_var_idx], self.emb(x[:,ch_var_idx]), x[:,ch_var_idx+1:]], axis=1)
 
