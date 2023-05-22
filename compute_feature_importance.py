@@ -10,6 +10,7 @@ import os
 import tensorflow as tf
 from copy import deepcopy
 
+
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
 def complete_path(rel_path):
@@ -49,58 +50,16 @@ learning_features = ['charge_1', 'charge_2', 'charge_3', 'pt_1',
 selection = learning_features + ['signal_label']
 selection_all = selection + ['channel']
 
-depths = [5,7,10,15]
+tf.keras.models.load_model(complete_path('saved_models/TEST9_global_v4_all_channels_depth_10'))
 
-def compute_fi_perm(train, val, test, var_names, name, channel):
-    print(len(train[list(train.keys())[0]]))
-
-    x_train = train[var_names]
-    x_val = val[var_names]
-
-    label_train = x_train.pop('signal_label').astype(float)
-    label_val = x_val.pop('signal_label').astype(float)
+def compute_fi_perm(model, test, var_names, to_permute, name, channel):
 
     features = deepcopy(var_names)
     features.remove('signal_label')
 
-    losses = []
-    for depth in depths:
-        widths = [len(features)*2]*depth
-        model = Dnn_tau(features, widths=widths)
-        model.compile(loss='binary_crossentropy', 
-                      optimizer='adam',
-                      metrics=['accuracy'],
-                      weighted_metrics=['accuracy']
-                      )
-
-        early_stopping = tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=15)
-        checkpoint = tf.keras.callbacks.ModelCheckpoint(
-            filepath="./saved_models/checkpoint",
-            monitor = "val_loss",
-            save_best_only = True
-        )
-
-
-        history = model.fit(x_train, label_train, sample_weight=train['genWeight'], validation_data=(x_val, label_val, val['genWeight']), epochs=100000, verbose=1,  # type: ignore
-                            batch_size = 200, callbacks=[early_stopping, checkpoint])
-        
-        model = tf.keras.models.load_model('./saved_models/checkpoint')
-        model.save(complete_path('saved_models/'+ name + '_' + channel + '_depth_{}'.format(depth)))
-        # Save history
-        filename = complete_path('saved_history/'+ name + '_' + channel + '_depth_{}'.format(depth))
-        with open(filename, "wb") as file:
-            pickle.dump(history.history, file) # type: ignore
-
-        loss, _, _ = model.evaluate(x_val, label_val, sample_weight=val['genWeight'])
-        losses.append(loss)
-    
-    losses = np.array(losses)
-    idx_best = np.argmin(losses)
-    model = tf.keras.models.load_model(complete_path('saved_models/'+ name + '_' + channel + '_depth_{}'.format(depths[idx_best])))
-
     delta_loss_perm = []
     loss_no_shuffle = fi_perm(model, test, var_names, [])
-    for key in features:
+    for key in to_permute:
         loss_shuffle = fi_perm(model, test, var_names, key)
         delta_loss_perm.append([loss_shuffle-loss_no_shuffle])
     delta_loss_perm = dict(zip(features, delta_loss_perm))
@@ -120,5 +79,5 @@ def compute_fi_perm(train, val, test, var_names, name, channel):
 
 #     compute_fi_perm(train_channel, val_channel, test_channel, selection, "TEST9_global_v4", channel)
 
-compute_fi_perm(train, val, test, selection_all, "TEST9_global_v4", 'all_channels')
+# compute_fi_perm(train, val, test, selection_all, "TEST9_global_v4", 'all_channels')
 
