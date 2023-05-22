@@ -8,6 +8,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import tensorflow as tf
+from copy import deepcopy
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,7 +16,11 @@ def complete_path(rel_path):
     path = os.path.join(current_directory, rel_path)
     return path
 
-data = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_all_normalized'))
+train = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_train'))
+val = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_val'))
+test = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_test'))
+meas = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_meas'))
+
 file_path_idx = complete_path('extracted_data/TEST9_global_v4_all_normalized_channel_indices')
 with open(file_path_idx, 'rb') as file:
     channel_indices = pickle.load(file)
@@ -41,47 +46,44 @@ learning_features = ['charge_1', 'charge_2', 'charge_3', 'pt_1',
        'HNL_CM_mass_with_MET_1', 'HNL_CM_mass_with_MET_2', 'W_CM_angle_12',
        'W_CM_angle_13', 'W_CM_angle_23', 'W_CM_angle_1MET', 'W_CM_angle_2MET',
        'W_CM_angle_3MET', 'mass_hyp']
-selection = learning_features+['signal_label']
-
-print(selection)
+selection = learning_features + ['signal_label']
+selection_all = selection + ['channel']
 
 depths = [5,7,10,15]
 
-def compute_fi_perm(data, name, channel):
-    print(len(data['event']))
+def compute_fi_perm(train, val, test, var_names, name, channel):
+    print(len(train[list(train.keys())[0]]))
 
-    train, val, test, meas = split_dataset(data)
-
-    x_train = train[selection]
-    x_test = test[selection]
-    x_val = val[selection]
-    x_meas = meas[selection]
+    x_train = train[var_names]
+    x_val = val[var_names]
 
     label_train = x_train.pop('signal_label').astype(float)
     label_val = x_val.pop('signal_label').astype(float)
-    label_test = x_test.pop('signal_label').astype(float)
-    label_meas = x_meas.pop('signal_label').astype(float)
-    x_train = x_train.astype(float)
-    x_test = x_test.astype(float)
-    x_val= x_val.astype(float)
-    x_meas = x_meas.astype(float)
+
+    features = deepcopy(var_names)
+    features.remove('signal_label')
 
     losses = []
     for depth in depths:
-        widths = [len(learning_features)*2]*depth
-        model = Dnn_tau(learning_features, widths=widths)
+        widths = [len(features)*2]*depth
+        model = Dnn_tau(features, widths=widths)
         model.compile(loss='binary_crossentropy', 
-                      optimizer='adam', 
-                      metrics=['accuracy'])
+                      optimizer='adam',
+                      metrics=['accuracy'],
+                      weighted_metrics=['accuracy']
+                      )
 
-        early_stopping = tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=10)
+        early_stopping = tf.keras.callbacks.EarlyStopping(monitor='accuracy', patience=15)
         checkpoint = tf.keras.callbacks.ModelCheckpoint(
             filepath="./saved_models/checkpoint",
             monitor = "val_loss",
             save_best_only = True
         )
-        history = model.fit(x_train, label_train, sample_weight=train['genWeight'], validation_data=(x_val, label_val), epochs=100000, verbose=1,  # type: ignore
-                            batch_size = 300, callbacks=[early_stopping, checkpoint])
+
+
+        history = model.fit(x_train, label_train, sample_weight=train['genWeight'], validation_data=(x_val, label_val, val['genWeight']), epochs=100000, verbose=1,  # type: ignore
+                            batch_size = 200, callbacks=[early_stopping, checkpoint])
+        
         model = tf.keras.models.load_model('./saved_models/checkpoint')
         model.save(complete_path('saved_models/'+ name + '_' + channel + '_depth_{}'.format(depth)))
         # Save history
@@ -89,7 +91,7 @@ def compute_fi_perm(data, name, channel):
         with open(filename, "wb") as file:
             pickle.dump(history.history, file) # type: ignore
 
-        loss, _ = model.evaluate(x_val, label_val)
+        loss, _, _ = model.evaluate(x_val, label_val, sample_weight=val['genWeight'])
         losses.append(loss)
     
     losses = np.array(losses)
@@ -97,22 +99,26 @@ def compute_fi_perm(data, name, channel):
     model = tf.keras.models.load_model(complete_path('saved_models/'+ name + '_' + channel + '_depth_{}'.format(depths[idx_best])))
 
     delta_loss_perm = []
-    loss_no_shuffle = fi_perm(model, test, selection, [])
-    for key in learning_features:
-        loss_shuffle = fi_perm(model, test, selection, key)
+    loss_no_shuffle = fi_perm(model, test, var_names, [])
+    for key in features:
+        loss_shuffle = fi_perm(model, test, var_names, key)
         delta_loss_perm.append([loss_shuffle-loss_no_shuffle])
-    delta_loss_perm = dict(zip(learning_features, delta_loss_perm))
+    delta_loss_perm = dict(zip(features, delta_loss_perm))
 
     filename = complete_path("saved_results/" + name + "_loss_shuffle_" + channel)
     with open(filename, "wb") as file:
         pickle.dump(delta_loss_perm, file)
 
-# for channel in channel_indices:
-#     data_channel = data.loc[data['channel'] == channel_indices[channel]]
-#     print(len(data_channel['event']))
+# # for channel in channel_indices:
+# for channel in ['tee']:
+#     train_channel = train[train['channel'] == channel_indices[channel]]
+#     print("Debug : ", len(train_channel['event']))
+#     val_channel = val[val['channel'] == channel_indices[channel]]
+#     test_channel = test[test['channel'] == channel_indices[channel]]
+#     meas_channel = meas[meas['channel'] == channel_indices[channel]]
+#     print(len(train_channel['event']) + len(val_channel['event']) + len(test_channel['event']) + len(meas_channel['event']))
 
-#     compute_fi_perm(data_channel, "TEST9_global_v4", channel)
+#     compute_fi_perm(train_channel, val_channel, test_channel, selection, "TEST9_global_v4", channel)
 
-compute_fi_perm(data, "TEST9_global_v4", 'all_channels')
+compute_fi_perm(train, val, test, selection_all, "TEST9_global_v4", 'all_channels')
 
-    
