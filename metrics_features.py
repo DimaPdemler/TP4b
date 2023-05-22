@@ -17,9 +17,9 @@ def fi_perm(model, test_df, input_vars, keys_shuffle):
         test[key] = permutation(test[key])
         x_test = test[input_vars]
         y_test = x_test.pop('signal_label').astype(float)
-    loss_shuffle, _ = model.evaluate(x_test, y_test, sample_weight=test_df['genWeight'], verbose=0)
+    results = model.evaluate(x_test, y_test, sample_weight=test_df['genWeight'], verbose=0)
 
-    return loss_shuffle
+    return results[0]
 
 
 def fi_mutual_info(model, test_df, input_vars):
