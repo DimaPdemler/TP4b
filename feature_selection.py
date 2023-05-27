@@ -47,7 +47,7 @@ features = deepcopy(selection)
 features.remove('signal_label')
 to_permute = deepcopy(features)
 to_permute.remove('channel')
-to_permute.remove('mass_hyp')
+# to_permute.remove('mass_hyp')
 
 depths = [5,7,10,15]
 
@@ -89,7 +89,7 @@ for channel in ['ttm']:
     sel_values = [v for v in values if v > threshold]
     sel_names = names[:len(sel_values)]
 
-    selected_vars.append(sel_names)
+    selected_vars.extend(sel_names)
 
 selected_vars = list(set(selected_vars))
 filename = complete_path("saved_results/selected_vars_threshold_100")

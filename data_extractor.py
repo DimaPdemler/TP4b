@@ -47,14 +47,6 @@ output_vars_v4 = ['event', 'genWeight',
                   ['W_CM_angle_12','W_CM_angle_13', 'W_CM_angle_23', 'W_CM_angle_1MET', 'W_CM_angle_2MET', 'W_CM_angle_3MET'],
                   'n_tauh']
 
-"""deltaphi_1MET+..."""
-"""deltaphi deltaR deltaeta : between 1(2+3)... and also with MET for deltaphi"""
-"""deltaphi : (1,2,3)MET"""
-"""mt : (1+2)MET, (1+2)3..."""
-"""mass : (1+2), ... without MET"""
-"""mass : (1+2+3)"""
-
-
 #===================================================================================================
 
 class Data_extractor():
