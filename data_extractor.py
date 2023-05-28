@@ -165,7 +165,6 @@ class Data_extractor():
                 continue
 
             # Raw data loading
-            print(self.channel)
             limit_charge = 3
             limit_tau_jet = 5
             limit_em_iso = 0.15
@@ -245,12 +244,9 @@ class Data_extractor():
 
             anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, cut=cut, library='np') # type: ignore
             
-            print("selection done")
             n = len(anatuple[list(anatuple.keys())[0]])
-            print(n)
 
             if n==0:
-                print("No event selected -> root file passed")
                 continue
 
             anatuple['channel'] = [self.channel]*n
@@ -259,13 +255,10 @@ class Data_extractor():
             # Creation of the data
             for i, var in enumerate(self.output_vars):
                 if self.functions[i] == None:
-                    print(var)
                     data[var] = concatenate((data[var], anatuple[self.input_vars[i][0]]))
                 else:
-                    print("reached var ", var)
                     outputs = self.functions[i](*call_dict_with_list(anatuple, self.input_vars[i]))
                     if type(var) == list:
-                        print(len(var))
                         for j,v in enumerate(var):
                             data[v] = concatenate((data[v], outputs[j]))
                     else:
