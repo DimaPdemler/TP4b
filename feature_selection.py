@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import pickle
-from metrics_features import fi_perm
+from TP4b.metrics import fi_perm
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
