@@ -305,7 +305,6 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
         return figs, counts
     return figs
     
-    #######################################################
 
 #######################################################
 
