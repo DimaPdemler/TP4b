@@ -4,6 +4,8 @@ from pickle import dump
 from copy import deepcopy
 
 def train_model(depth, train, val, vars, save_path_model, save_path_history):
+    weight_name = 'weightNorm'
+
     n = len(vars)
     x_train = train[vars]
     x_val = val[vars]
@@ -30,7 +32,7 @@ def train_model(depth, train, val, vars, save_path_model, save_path_history):
 
     print('model defined')
 
-    history = model.fit(x_train, label_train, sample_weight=train['genWeight'], validation_data=(x_val, label_val, val['genWeight']), epochs=100000, verbose=1,  # type: ignore
+    history = model.fit(x_train, label_train, sample_weight=train[weight_name], validation_data=(x_val, label_val, val[weight_name]), epochs=100000, verbose=1,  # type: ignore
                         batch_size = 350, callbacks=[early_stopping, checkpoint])
     
     model = tf.keras.models.load_model('./saved_models/checkpoint')
