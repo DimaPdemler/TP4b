@@ -202,7 +202,7 @@ def bucketize(dataframe, key, return_dict = True):
 
 #######################################################
 
-def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False):
+def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False, weights_name = 'weightNorm'):
     """
     Arguments:
         -dataframe: pandas dataframe of dictionary containing the data
@@ -214,6 +214,8 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
                 'simple_signal_label' to have signal and background histogram on each plot
                 'n_tauh' to separate the backgrounds with 0, 1 or 2 hadronic taus detected, on each plot
         -return_counts : if True, the function returns the counts for each bin as well as the uncertainty on the bin
+        -weights _name : name of the column in which the weights are stored. If None or if the specified name is not
+                         in the dataframe keys, all weights will be set to 1
     Output:
         -figs: list of pyplot figures, one for each key in keys
         -counts: (if renturn_counts) list of dictionaries containing the counts and the error on the bins, for each type of data (sub histograms) 
@@ -273,10 +275,13 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
             
             df = sub_df[event_type]
             
-            if 'genWeight' not in list(df.keys()):
-                df['genWeight'] = np.ones_like(df[list(df.keys())[0]])
-            c,b = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight'])
-            c2,_ = np.histogram(df[key], bins=bins_list[i], weights=df['genWeight']**2)
+            if (weights_name not in list(df.keys())) or (weights_name == None):
+                if weights_name == None:
+                    weights_name = 'genWeight'
+                df[weights_name] = np.ones_like(df[list(df.keys())[0]])
+            
+            c,b = np.histogram(df[key], bins=bins_list[i], weights=df[weights_name])
+            c2,_ = np.histogram(df[key], bins=bins_list[i], weights=df[weights_name]**2)
             if normalize:
                 norm = np.sum(c)
                 if norm != 0:
