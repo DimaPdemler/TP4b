@@ -6,6 +6,9 @@ from copy import deepcopy
 def train_model(depth, train, val, vars, save_path_model, save_path_history):
     weight_name = 'weightNorm'
 
+    if 'signal_label' not in vars:
+        vars.append('signal_label')
+
     n = len(vars)
     x_train = train[vars]
     x_val = val[vars]
@@ -13,7 +16,6 @@ def train_model(depth, train, val, vars, save_path_model, save_path_history):
     label_val = x_val.pop('signal_label').astype(float)
     features = deepcopy(vars)
     features.remove('signal_label')
-
 
     widths = [n*2]*depth
     model = Dnn_tau(features, widths=widths)
