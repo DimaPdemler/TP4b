@@ -81,8 +81,6 @@ def poisson_significance(scores, signal_label, weights, bins):
 
         weights_s_x0 = weights_s[scores_s > x0]
         weights_b_x0 = weights_b[scores_b > x0]
-        scores_s_x0 = scores_s[scores_s > x0]
-        scores_b_x0 = scores_b[scores_b > x0]
 
         S = sum(weights_s_x0)
         B = sum(weights_b_x0)
