@@ -17,19 +17,20 @@ def complete_path(rel_path):
     path = os.path.join(current_directory, rel_path)
     return path
 
-name = 'TEST9_global_v4_all_channels'
+# name = 'TEST9_global_v4_all_channels'
+name = 'TEST9_sel2'
 save_path = 'saved_results/new_results/'
 
-train = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_or&norm_weights_train'))
-val = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_or&norm_weights_val'))
-test = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_or&norm_weights_test'))
-meas = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_or&norm_weights_meas'))
+train = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_og_and_norm_weights_train'))
+val = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_og_and_norm_weights_val'))
+test = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_og_and_norm_weights_test'))
+meas = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_og_and_norm_weights_meas'))
 
 file_path_idx = complete_path('extracted_data/TEST9_global_v4_all_normalized_channel_indices')
 with open(file_path_idx, 'rb') as file:
     channel_indices = pickle.load(file)
 
-with open(complete_path('saved_results/features&label_all_v4'), 'rb') as file:
+with open(complete_path('saved_results/features_and_label_sel2'), 'rb') as file:
     features = pickle.load(file)
 
 to_permute = deepcopy(features)
