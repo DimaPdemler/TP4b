@@ -202,7 +202,8 @@ def bucketize(dataframe, key, return_dict = True):
 
 #######################################################
 
-def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False, weights_name = 'weightNorm'):
+def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_tauh', return_counts = False, 
+              weights_name = 'weightNorm', figsize=(10, 6)):
     """
     Arguments:
         -dataframe: pandas dataframe of dictionary containing the data
@@ -263,7 +264,7 @@ def plot_hist(dataframe, keys, keys_label, bins_list, normalize = True, mode='n_
         bins_list = [bins_list]
     
     for i,key in enumerate(keys):
-        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
 
         # dictionary for counts/errors
         sub_dicts = []
