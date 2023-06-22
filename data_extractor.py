@@ -171,76 +171,19 @@ class Data_extractor():
 
             cut = ''
             if self.channel == 'tte':
-                # vars_to_load = deepcopy(self.raw_vars)
-                # new_vars = ['Tau1_idDeepTau2018v2p5VSjet', 'Tau2_idDeepTau2018v2p5VSjet', 'Electron_pfRelIso03_all', 'Tau1_charge', 'Tau2_charge', 'Electron_charge']
-                # for new_var in new_vars:
-                #     if new_var not in vars_to_load:
-                #         vars_to_load.append(new_var)
-                # print(vars_to_load)
-                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
-                # anatuple = anatuple[abs(anatuple['Tau1_charge'] + anatuple['Tau2_charge'] + anatuple['Electron_charge']) < limit_charge]
-                # anatuple = anatuple[anatuple['Tau1_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Tau2_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Electron_pfRelIso03_all'] < limit_em_iso]
-                # anatuple = anatuple[self.raw_vars]
                 cut = '(abs(Tau1_charge + Tau2_charge + Electron_charge) < {}) & (Tau1_idDeepTau2018v2p5VSjet >= {}) & (Tau2_idDeepTau2018v2p5VSjet >= {}) & (Electron_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_tau_jet, limit_em_iso)
 
             if self.channel == 'tee':
-                # vars_to_load = deepcopy(self.raw_vars)
-                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Electron1_pfRelIso03_all', 'Electron2_pfRelIso03_all', 'Tau_charge', 'Electron1_charge', 'Electron2_charge']
-                # for new_var in new_vars:
-                #     if new_vars not in vars_to_load:
-                #         vars_to_load.append(new_var)
-                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
-                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Electron1_charge'] + anatuple['Electron2_charge']) < limit_charge]
-                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Electron1_pfRelIso03_all'] < limit_em_iso]
-                # anatuple = anatuple[anatuple['Electron2_pfRelIso03_all'] < limit_em_iso]
                 cut = '(abs(Tau_charge + Electron1_charge + Electron2_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Electron1_pfRelIso03_all < {}) & (Electron2_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
 
             if self.channel == 'tem':
-                # vars_to_load = deepcopy(self.raw_vars)
-                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Electron_pfRelIso03_all', 'Muon_pfRelIso03_all', 'Tau_charge', 'Electron_charge', 'Muon_charge']
-                # for new_var in new_vars:
-                #     if new_vars not in vars_to_load:
-                #         vars_to_load.append(new_var)
-                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
-                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Electron_charge'] + anatuple['Muon_charge']) < limit_charge]
-                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Electron_pfRelIso03_all'] < limit_em_iso]
-                # anatuple = anatuple[anatuple['Muon_pfRelIso03_all'] < limit_em_iso]
                 cut = '(abs(Tau_charge + Electron_charge + Muon_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Electron_pfRelIso03_all < {}) & (Muon_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
 
             if self.channel == 'tmm':
-                # vars_to_load = deepcopy(self.raw_vars)
-                # new_vars = ['Tau_idDeepTau2018v2p5VSjet', 'Muon1_pfRelIso03_all', 'Muon2_pfRelIso03_all', 'Tau_charge', 'Muon1_charge', 'Muon2_charge']
-                # for new_var in new_vars:
-                #     if new_vars not in vars_to_load:
-                #         vars_to_load.append(new_var)
-                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
-                # anatuple = anatuple[abs(anatuple['Tau_charge'] + anatuple['Muon1_charge'] + anatuple['Muon2_charge']) < limit_charge]
-                # anatuple = anatuple[anatuple['Tau_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Muon1_pfRelIso03_all'] < limit_em_iso]
-                # anatuple = anatuple[anatuple['Muon2_pfRelIso03_all'] < limit_em_iso]
                 cut = '(abs(Tau_charge + Muon1_charge + Muon2_charge) < {}) & (Tau_idDeepTau2018v2p5VSjet >= {}) & (Muon1_pfRelIso03_all < {}) & (Muon2_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_em_iso, limit_em_iso)
 
             if self.channel == 'ttm':
-                # vars_to_load = deepcopy(self.raw_vars)
-                # new_vars = ['Tau1_idDeepTau2018v2p5VSjet', 'Tau2_idDeepTau2018v2p5VSjet', 'Muon_pfRelIso03_all', 'Tau1_charge', 'Tau2_charge', 'Muon_charge']
-                # for new_var in new_vars:
-                #     if new_vars not in vars_to_load:
-                #         vars_to_load.append(new_var)
-                # anatuple = open(path+filename)['Event;1'].arrays(vars_to_load, library='pd')
-                # anatuple = anatuple[abs(anatuple['Tau1_charge'] + anatuple['Tau2_charge'] + anatuple['Muon_charge']) < limit_charge]
-                # anatuple = anatuple[anatuple['Tau1_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Tau2_idDeepTau2018v2p5VSjet'] >= limit_tau_jet]
-                # anatuple = anatuple[anatuple['Muon_pfRelIso03_all'] < limit_em_iso]
                 cut = '(abs(Tau1_charge + Tau2_charge + Muon_charge) < {}) & (Tau1_idDeepTau2018v2p5VSjet >= {}) & (Tau2_idDeepTau2018v2p5VSjet >= {}) & (Muon_pfRelIso03_all < {})'.format(limit_charge, limit_tau_jet, limit_tau_jet, limit_em_iso)            
-            # anatuple_pd = deepcopy(anatuple)
-            # anatuple = anatuple.to_dict()
-            # anatuple.pop(anatuple_pd.index.name, None)
-            # for key in anatuple.keys():
-            #     anatuple[key] = ravel(anatuple[key])
 
             anatuple = open(path+filename)['Event;1'].arrays(self.raw_vars, cut=cut, library='np') # type: ignore
             
