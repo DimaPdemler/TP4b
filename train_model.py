@@ -2,13 +2,12 @@ from dnn_tau import Dnn_tau
 import tensorflow as tf
 from pickle import dump
 from copy import deepcopy
-from os import listdir
+from os import listdir, makedirs
 from fnmatch import filter
 from utils import isolate_int
 
-def train_model(depth, train, val, vars, save_path, model_name): #, save_path_history):
+def train_model(depth, train, val, vars, save_path, model_name, epochs=100000): #, save_path_history):
     weight_name = 'weightNorm'
-
     if 'signal_label' not in vars:
         vars.append('signal_label')
 
@@ -37,14 +36,23 @@ def train_model(depth, train, val, vars, save_path, model_name): #, save_path_hi
 
     print('model defined')
 
-    history = model.fit(x_train, label_train, sample_weight=train[weight_name], validation_data=(x_val, label_val, val[weight_name]), epochs=100000, verbose=1,  # type: ignore
+    history = model.fit(x_train, label_train, sample_weight=train[weight_name], validation_data=(x_val, label_val, val[weight_name]), epochs=epochs, verbose=1,  # type: ignore
                         batch_size = 350, callbacks=[early_stopping, checkpoint])
     
     model = tf.keras.models.load_model('./saved_models/checkpoint')
 
     print(save_path)
     print(model_name)
-    existing_models = filter(listdir(save_path), model_name+'*')
+    
+    try:
+        existing_models = filter(listdir(save_path), model_name+'*')
+    except FileNotFoundError:
+        print(f"Directory {save_path} not found. Creating it.")
+        makedirs(save_path, exist_ok=True)
+        existing_models = []
+
+
+
     print(existing_models)
     if len(existing_models) == 0:
         suffix = '_n_0'

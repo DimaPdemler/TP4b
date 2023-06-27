@@ -4,20 +4,22 @@ import tensorflow as tf
 import numpy as np
 import os
 import pickle
-from TP4b.metrics import fi_perm
+from metrics import fi_perm
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
+cdpath="/home/ddemler/dmitri_stuff/"
+
 
 def complete_path(rel_path):
     path = os.path.join(current_directory, rel_path)
     return path
 
-train = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_train'))
-val = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_val'))
-test = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_test'))
-meas = pd.read_pickle(complete_path('extracted_data/TEST9_global_v4_meas'))
+train = pd.read_pickle(cdpath + 'extracted_data/TEST10_v4_train')
+val = pd.read_pickle(cdpath + 'extracted_data/TEST10_v4_val')
+test = pd.read_pickle(cdpath + 'extracted_data/TEST10_v4_test')
+meas = pd.read_pickle(cdpath + 'extracted_data/TEST10_v4_meas')
 
-file_path_idx = complete_path('extracted_data/TEST9_global_v4_all_normalized_channel_indices')
+file_path_idx = cdpath + 'extracted_data/TEST10_channel_indices'
 with open(file_path_idx, 'rb') as file:
     channel_indices = pickle.load(file)
 
@@ -56,12 +58,12 @@ label_val = x_val.pop('signal_label').astype(float)
 
 losses = []
 for depth in depths:
-    model = tf.keras.models.load_model('saved_models/TEST9_global_v4_all_channels_depth_{}'.format(depth))
+    model = tf.keras.models.load_model('saved_models/TEST10_global_v4_all_channels_depth_{}'.format(depth))
     loss, _, _ = model.evaluate(x_val, label_val, sample_weight=val['genWeight'])
     losses.append(loss)
 losses = np.array(losses)
 idx_best = np.argmin(losses)
-model = tf.keras.models.load_model('saved_models/TEST9_global_v4_all_channels_depth_{}'.format(depths[idx_best]))
+model = tf.keras.models.load_model('saved_models/TEST10_global_v4_all_channels_depth_{}'.format(depths[idx_best]))
 
 selected_vars = []
 # for channel in channel_indices:
@@ -77,7 +79,7 @@ for channel in ['ttm']:
         delta_loss_perm.append([loss_shuffle-loss_no_shuffle])
     delta_loss_perm = dict(zip(to_permute, delta_loss_perm))
 
-    filename = complete_path("saved_results/TEST9_global_v4_loss_shuffle_all_channels_eval_" + channel)
+    filename = complete_path("saved_results/TEST10_global_v4_loss_shuffle_all_channels_eval_" + channel)
     with open(filename, "wb") as file:
         pickle.dump(delta_loss_perm, file)
     
